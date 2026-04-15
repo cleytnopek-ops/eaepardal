@@ -24,12 +24,12 @@
         }
 
         .kali-panel {
-            width: 900px;
+            width: 1100px;
             max-width: 100%;
             background: #0f0f0f;
             border: 1px solid #333;
             border-radius: 8px;
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -67,9 +67,9 @@
 
         .terminal-body {
             padding: 20px;
-            height: 500px;
+            height: 580px;
             overflow-y: auto;
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.6;
             background: #050505;
         }
@@ -77,6 +77,7 @@
         .output-line {
             margin-bottom: 4px;
             white-space: pre-wrap;
+            word-break: break-word;
         }
 
         .success { color: #00ff00; }
@@ -84,6 +85,7 @@
         .warning { color: #ffff55; }
         .info { color: #5555ff; }
         .kali-blue { color: #2979ff; }
+        .glitch { color: #ff88ff; text-shadow: 0 0 2px magenta; }
 
         .prompt-line {
             display: flex;
@@ -108,7 +110,6 @@
 
         .hidden { display: none; }
 
-        /* Scrollbar */
         .terminal-body::-webkit-scrollbar { width: 6px; }
         .terminal-body::-webkit-scrollbar-track { background: #050505; }
         .terminal-body::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
@@ -117,14 +118,76 @@
             background: #2979ff;
             color: white;
             border: none;
-            padding: 5px 15px;
+            padding: 6px 18px;
             border-radius: 4px;
             cursor: pointer;
             font-family: inherit;
-            margin-top: 10px;
+            margin-top: 12px;
             font-weight: bold;
+            transition: 0.2s;
         }
-        .bt-btn:hover { background: #1c54b2; }
+        .bt-btn:hover { background: #1c54b2; transform: scale(0.98); }
+        
+        .script-box {
+            background: #0a0a1a;
+            border-left: 4px solid #2979ff;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 12px;
+            color: #bbffbb;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .lab-panel {
+            background: #0a0a0e;
+            border: 1px solid #3a3a5a;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 12px 0;
+        }
+        .lab-row {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .lab-btn {
+            background: #2a2a4a;
+            border: none;
+            color: #cc88ff;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        .lab-btn:hover { background: #4a4a7a; }
+        .chat-message {
+            padding: 4px 8px;
+            margin: 2px 0;
+        }
+        .chat-mine { color: #88ff88; }
+        .chat-friend { color: #88aaff; }
+        .device-list {
+            background: #0a0a0a;
+            border: 1px solid #2979ff;
+            margin: 10px 0;
+            padding: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .device-item {
+            padding: 6px;
+            margin: 4px 0;
+            border-bottom: 1px solid #2a2a2a;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+        }
+        .device-item:hover { background: #1a1a2a; }
+        .device-name { color: #88ff88; }
+        .device-id { color: #888; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -136,14 +199,13 @@
             <div class="ctrl-btn minimize"></div>
             <div class="ctrl-btn maximize"></div>
         </div>
-        <div class="title-text">root@device: ~</div>
+        <div class="title-text">root@pardal:~// v7.0</div>
     </div>
 
     <div class="terminal-body" id="terminal">
         <div id="output"></div>
-        
         <div id="input-area" class="prompt-line hidden">
-            <span class="prompt-text" id="prompt-label">┌──(root㉿device)-[~]<br>└─$</span>
+            <span class="prompt-text" id="prompt-label">┌──(root㉿-painelzinho-do-davi-usa-avontade)-[~]<br>└─$</span>
             <input type="text" id="cmdInput" autofocus spellcheck="false" autocomplete="off">
         </div>
     </div>
@@ -154,9 +216,13 @@
     const cmdInput = document.getElementById('cmdInput');
     const inputArea = document.getElementById('input-area');
     const promptLabel = document.getElementById('prompt-label');
-    const terminal = document.getElementById('terminal');
+    const terminalDiv = document.getElementById('terminal');
 
     let currentState = 'BOOT'; 
+    let chatListenerActive = false;
+    let activeTVDevice = null;
+    let tvSpamInterval = null;
+
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     async function print(text, type = '', delay = 0) {
@@ -168,36 +234,37 @@
             for (let char of text) {
                 line.textContent += char;
                 await sleep(delay);
-                terminal.scrollTop = terminal.scrollHeight;
+                terminalDiv.scrollTop = terminalDiv.scrollHeight;
             }
         } else {
             line.textContent = text;
         }
-        terminal.scrollTop = terminal.scrollHeight;
+        terminalDiv.scrollTop = terminalDiv.scrollHeight;
     }
 
     async function startBoot() {
         output.innerHTML = '';
-        await print("Iniciando o Boot  calma ae, Sequence...", "kali-blue");
-        await sleep(500);
-        await print("[ OK ] Started LVM2 PV scan on device 8:2");
-        await print("[ OK ] Reached target Local File Systems (Pre)");
-        await print("[ OK ] Reached target Local File Systems");
-        await print("[ OK ] Started Network Time Synchronization");
-        await print("[ OK ] Reached target Network");
-        await sleep(800);
-        await print("Injecting boot...", "warning");
-        await sleep(1000);
-        await print("Executing system core... / calma mano ta quase lá", "success");
-        await sleep(1000);
+        if (chatListenerActive) {
+            window.removeEventListener('storage', chatStorageHandler);
+            chatListenerActive = false;
+        }
+        if (tvSpamInterval) clearInterval(tvSpamInterval);
+        await print("Inicializando PARDAL CORE v7.0", "kali-blue");
+        await sleep(400);
+        await print("[ OK ] ATIVANDO SEGURANÇA");
+        await print("[ OK ] Redes Wifi Detectadas!");
+        await print("[ OK ] Tvs Detectadas");
+        await sleep(700);
+        await print("[!] Sistema pronto para operacao", "warning");
+        await sleep(600);
         
         currentState = 'KEY';
-        await print("\nSISTEMA BLOQUEADO", "error");
-        await print("Por favor, insira a KEY de acesso:");
-        showInput("KEY: ");
+        await print("\nACESSO RESTRITO", "error");
+        await print("Digite a chave de acesso:");
+        showInput("CHAVE > ");
     }
 
-    function showInput(label = "Seleção: ") {
+    function showInput(label = "Selecao: ") {
         inputArea.classList.remove('hidden');
         promptLabel.innerHTML = label;
         cmdInput.value = '';
@@ -210,101 +277,295 @@
 
     async function showMenu() {
         currentState = 'MENU';
-        await print("\n========================================", "kali-blue");
-        await print("       PARDAL SERVIÇOS - PAINEL v4.0", "kali-blue");
-        await print("========================================", "kali-blue");
-        await print("Selecione o serviço:");
-        await print("1 - Derrubar Wifi Próximo ");
-        await print("2 - Derrubar Todos os Bluetooth Próximos (Fones etc hehe),");
-        await print("0 - Sair / Reboot");
-        showInput("Seleção: ");
+        await print("\n" + "=".repeat(50), "kali-blue");
+        await print("   15/04/2026 Atualizado!   |    PARDAL SERVICOS - v7.0", "kali-blue");
+        await print("=".repeat(50), "kali-blue");
+        await print("Selecione o modulo:");
+        await print("1  - Derrubar Wifi Conectado");
+        await print("2  - Derrubar Bluetooth");
+        await print("3  - Banir WhatsApp");
+        await print("5  - Interferir em Televisoes");
+        await print("7  - Conversar pelo Painel - Testa ai! ");
+        await print("0  - Reiniciar Sistema");
+        showInput("OPCAO > ");
     }
 
+    // Servico 1 - Wifi
     async function serviceWifi() {
         hideInput();
-        await print("\n[!] Iniciando módulo de detecção Wi-Fi...", "warning");
-        await sleep(1000);
-        await print("[*] Verificando interface wlan0...");
+        await print("\n[!] Iniciando modulo de ataque Wi-Fi", "warning");
         await sleep(800);
-        await print("[+] Interface em modo monitor ativada.");
-        await print("[*] Escaneando redes Wi-Fi próximas...");
-        await sleep(2000);
-        
-        const networks = [
-            {ssid: "Desconhecida", signal: "-45dBm", bssid: "A4:B1:C1:D2:E3:F4"},
-            {ssid: "Viternet_Conde_Matarazzo", signal: "+5G Detectado...", bssid: "B2:C2:D3:E4:F5:A6"},
-            {ssid: "Desconhecida", signal: "-", bssid: "C3:D3:E4:F5:A6:B7"},
-            {ssid: "SEDUC-ADM", signal: "Sem Internet", bssid: "-Warning!A6:B7:C8"}
-        ];
-
-        await print("\n[+] Redes detectadas:");
-        networks.forEach((n, i) => {
-            print(`${i+1} - SSID: ${n.ssid} | Sinal: ${n.signal} | BSSID: ${n.bssid}`);
-        });
+        await print("[*] Escaneando redes proximas...");
         await sleep(1000);
-
-        const target = networks[0]; 
-        await print(`\n[!] ALVO DETECTADO: ${target.ssid}`, "warning");
-        await print("[*] Capturando Handshake...");
-        await sleep(1500);
-        await print("[+] Handshake capturado com sucesso!", "success");
-        
-        await print("[*] Iniciando ataque de desautenticação em massa...");
-        await sleep(1000);
-
-        for(let i=1; i<=5; i++) {
-            await print(`[DEAUTH] Enviando pacotes para ${target.bssid} (Pacote ${i}/5)...`, "error");
-            await sleep(600);
+        await print("[+] Rede salva: Viternet_Conde_Matarazzo | BSSID: 5G", "success");
+        for(let i=1;i<=5;i++) {
+            await print(`[DEAUTH] Enviando pacote ${i}/5`, "error");
+            await sleep(400);
         }
-
-        await print(`\n[✔] SUCESSO: A rede ${target.ssid} foi derrubada.`, "success");
-        await print("[!] Dispositivos desconectados.", "warning");
-        await sleep(2000);
+        await print("[+] Rede derrubada com sucesso", "success");
+        await sleep(1500);
         showMenu();
     }
 
-    async function serviceBluetoothReal() {
+    // Servico 2 - Bluetooth real (dispositivos em geral)
+    async function serviceBluetooth() {
         hideInput();
-        await print("\n[!] Ativando Bluetooth Stack Real...", "warning");
-        await sleep(500);
-        await print("[*] Aguardando permissão do usuário para acessar hardware...");
-        
+        await print("\n[!] Iniciando varredura Bluetooth", "warning");
         const btn = document.createElement('button');
         btn.className = 'bt-btn';
-        btn.innerText = 'CLIQUE PARA ESCANEAR DISPOSITIVOS REAIS';
+        btn.innerText = "ESCANEAR DISPOSITIVOS";
         output.appendChild(btn);
-        terminal.scrollTop = terminal.scrollHeight;
-
+        terminalDiv.scrollTop = terminalDiv.scrollHeight;
         btn.onclick = async () => {
             btn.remove();
             try {
-                await print("[*] Solicitando acesso ao Bluetooth via Web API...", "info");
-                
-                // Solicita qualquer dispositivo Bluetooth
-                const device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true
-                });
-
-                await print(`\n[✔] DISPOSITIVOS DETECTADO!`, "success");
-                await print(`[+] Nome: ${device.name || 'Dispositivo sem nome'}`, "success");
-                await print(`[+] ID: ${device.id}`, "info");
-                
-                await print("\n[*] Iniciando conexão de teste...", "warning");
-                await sleep(1500);
-                await print("[+] Conectado ao GATT Server.", "success");
-                await print("[!] Interagindo com serviços do dispositivo...", "warning");
+                const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+                await print(`\n[+] Dispositivo encontrado: ${device.name || 'Desconhecido'}`, "success");
+                await print("[!] Executando dessincronizacao...", "error");
                 await sleep(1000);
-                await print("[✔] Teste de conexão concluído com sucesso.", "success");
-                
-                await sleep(2000);
+                await print("[+] Ataque concluido", "success");
+                await sleep(1200);
                 showMenu();
+            } catch(e) {
+                await print(`[!] Erro: ${e.message}`, "error");
+                await sleep(1500);
+                showMenu();
+            }
+        };
+    }
 
-            } catch (error) {
-                await print(`\n[!] ERRO: ${error.message}`, "error");
-                if (error.name === 'NotFoundError') {
-                    await print("[!] Nenhum dispositivo foi selecionado ou o Bluetooth está desligado.", "warning");
-                } else if (error.name === 'SecurityError') {
-                    await print("[!] O navegador bloqueou o acesso por segurança (requer HTTPS ou localhost).", "error");
+    // Servico 3 - Banir WhatsApp
+    async function banWhatsapp() {
+        hideInput();
+        await print("\n[!] Sistema de banimento WhatszApp", "error");
+        await print("[*] Digite o numero da vitima:");
+        
+        const divNum = document.createElement('div');
+        divNum.className = "prompt-line";
+        const spanNum = document.createElement('span');
+        spanNum.className = "prompt-text";
+        spanNum.innerText = "NUMERO > ";
+        const inputNum = document.createElement('input');
+        inputNum.type = "text";
+        inputNum.placeholder = "11999998888";
+        inputNum.style.background = "#111";
+        inputNum.style.border = "1px solid #2a6f2a";
+        inputNum.style.padding = "4px";
+        divNum.appendChild(spanNum);
+        divNum.appendChild(inputNum);
+        output.appendChild(divNum);
+        inputNum.focus();
+        
+        const finalize = async () => {
+            const numero = inputNum.value.trim();
+            if(!numero) { await print("[!] Cancelado", "error"); divNum.remove(); showMenu(); return; }
+            divNum.remove();
+            await print(`[*] Alvo: ${numero}`, "info");
+            const motivos = [
+                "Spam em massa e propagacao de desinformacao",
+                "Engenharia social e coleta ilegal de dados",
+                "Uso de bots para extracao digital",
+                "Compartilhamento de conteudo restrito",
+                "Violacao dos termos de servico em larga escala"
+            ];
+            const motivo = motivos[Math.floor(Math.random() * motivos.length)];
+            await print(`[!] Motivo do bloqueio: ${motivo}`, "warning");
+            const scriptContent = `#!/bin/bash
+# WhatsApp Enforcement Module
+NUMERO="${numero}"
+MOTIVO="${motivo}"
+echo "Notificacao: O numero ${NUMERO} foi banido permanentemente."
+echo "Motivo: ${MOTIVO}"
+echo "Protocolo: WAB-${Math.floor(Math.random()*9000)}"
+curl -s -X POST https://web.whatsapp.com/ban/execute?num=${numero} > /dev/null 2>&1
+echo "[+] Relatorio enviado ao sistema global."`;
+            const box = document.createElement('div');
+            box.className = 'script-box';
+            box.innerText = scriptContent;
+            output.appendChild(box);
+            const dload = document.createElement('button');
+            dload.className = 'bt-btn';
+            dload.innerText = "BAIXAR SCRIPT";
+            output.appendChild(dload);
+            dload.onclick = () => {
+                const blob = new Blob([scriptContent], {type: 'text/plain'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ban_whatsapp_${numero}.sh`;
+                a.click();
+                URL.revokeObjectURL(url);
+                dload.remove();
+                print("[+] Download iniciado", "success");
+            };
+            await sleep(2000);
+            showMenu();
+        };
+        const btnConfirm = document.createElement('button');
+        btnConfirm.innerText = "CONFIRMAR";
+        btnConfirm.className = "bt-btn";
+        btnConfirm.style.marginLeft = "10px";
+        btnConfirm.onclick = finalize;
+        divNum.appendChild(btnConfirm);
+        inputNum.addEventListener('keydown', (e) => { if(e.key === 'Enter') finalize(); });
+    }
+
+    // Servico 5 - INTERFERIR TV (Bluetooth real com scan de dispositivos)
+    async function interfereTV() {
+        hideInput();
+        await print("\n[TV] Modulo de interferencia em Televisoes", "glitch");
+        await print("[*] Solicitando permissao para acessar Bluetooth...", "info");
+        
+        if (!navigator.bluetooth) {
+            await print("[!] Web Bluetooth nao suportado neste navegador. Use Chrome/Edge em dispositivo com Bluetooth.", "error");
+            await sleep(2000);
+            showMenu();
+            return;
+        }
+        
+        await print("[*] Clique no botao abaixo para escanear dispositivos Bluetooth", "warning");
+        
+        const scanBtn = document.createElement('button');
+        scanBtn.className = 'bt-btn';
+        scanBtn.innerText = "ESCANEAR DISPOSITIVOS BLUETOOTH";
+        output.appendChild(scanBtn);
+        terminalDiv.scrollTop = terminalDiv.scrollHeight;
+        
+        scanBtn.onclick = async () => {
+            scanBtn.remove();
+            await print("[*] Procurando dispositivos Bluetooth proximos...", "info");
+            
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['generic_access']
+                });
+                
+                const deviceName = device.name || "Dispositivo Desconhecido";
+                const deviceId = device.id;
+                
+                await print(`\n[+] TV/DISPOSITIVO DETECTADO: ${deviceName}`, "success");
+                await print(`[+] ID: ${deviceId}`, "info");
+                
+                activeTVDevice = device;
+                
+                const tvPanel = document.createElement('div');
+                tvPanel.className = 'lab-panel';
+                tvPanel.innerHTML = `
+                    <div style="color:#ff88ff; margin-bottom:10px;">[CONTROLE DE INTERFERENCIA - ${deviceName}]</div>
+                    <div class="lab-row">
+                        <button id="tvConnect" class="lab-btn">CONECTAR</button>
+                        <button id="tvDisconnect" class="lab-btn">DESCONECTAR</button>
+                        <button id="tvSpamConnect" class="lab-btn" style="background:#8b0000;">SPAM CONEXAO (Flood)</button>
+                        <button id="tvStopSpam" class="lab-btn">PARAR SPAM</button>
+                    </div>
+                    <div id="tvStatus" style="color:#aaa; font-size:12px; margin-top:8px;">Status: Desconectado</div>
+                `;
+                output.appendChild(tvPanel);
+                terminalDiv.scrollTop = terminalDiv.scrollHeight;
+                
+                const statusDiv = document.getElementById('tvStatus');
+                let gattServer = null;
+                let spamActive = false;
+                
+                const connectToTV = async () => {
+                    try {
+                        if (gattServer && gattServer.connected) {
+                            await print("[!] Ja conectado ao dispositivo", "warning");
+                            statusDiv.innerText = "Status: Conectado";
+                            return;
+                        }
+                        await print("[*] Tentando conectar ao dispositivo...", "info");
+                        gattServer = await device.gatt.connect();
+                        statusDiv.innerText = "Status: Conectado";
+                        await print("[+] Conectado com sucesso ao dispositivo!", "success");
+                        await print("[!] Enviando pacotes de interferencia...", "warning");
+                        await sleep(500);
+                        await print("[+] Sinal de dessincronizacao enviado", "success");
+                    } catch(e) {
+                        await print(`[!] Falha na conexao: ${e.message}`, "error");
+                        statusDiv.innerText = `Status: Erro - ${e.message}`;
+                    }
+                };
+                
+                const disconnectFromTV = async () => {
+                    try {
+                        if (gattServer && gattServer.connected) {
+                            await gattServer.disconnect();
+                            gattServer = null;
+                            statusDiv.innerText = "Status: Desconectado";
+                            await print("[+] Desconectado do dispositivo", "success");
+                        } else {
+                            await print("[!] Nenhuma conexao ativa", "warning");
+                        }
+                    } catch(e) {
+                        await print(`[!] Erro ao desconectar: ${e.message}`, "error");
+                    }
+                };
+                
+                const spamConnect = async () => {
+                    if (spamActive) {
+                        await print("[!] Spam ja esta ativo", "warning");
+                        return;
+                    }
+                    spamActive = true;
+                    await print("[!] INICIANDO SPAM DE CONEXAO (Flood Attack)", "error");
+                    await print("[*] Conectando e desconectando rapidamente...", "warning");
+                    
+                    let count = 0;
+                    tvSpamInterval = setInterval(async () => {
+                        if (!spamActive) return;
+                        count++;
+                        try {
+                            const tempServer = await device.gatt.connect();
+                            await print(`[SPAM ${count}] Conectado ao dispositivo`, "info");
+                            await sleep(100);
+                            await tempServer.disconnect();
+                            await print(`[SPAM ${count}] Desconectado`, "info");
+                        } catch(e) {
+                            await print(`[SPAM ${count}] Falha: ${e.message.substring(0,50)}`, "error");
+                        }
+                    }, 800);
+                };
+                
+                const stopSpam = async () => {
+                    if (tvSpamInterval) {
+                        clearInterval(tvSpamInterval);
+                        tvSpamInterval = null;
+                        spamActive = false;
+                        await print("[+] Spam de conexao interrompido", "success");
+                    } else {
+                        await print("[!] Nenhum spam ativo", "warning");
+                    }
+                };
+                
+                document.getElementById('tvConnect').onclick = connectToTV;
+                document.getElementById('tvDisconnect').onclick = disconnectFromTV;
+                document.getElementById('tvSpamConnect').onclick = spamConnect;
+                document.getElementById('tvStopSpam').onclick = stopSpam;
+                
+                const closePanelBtn = document.createElement('button');
+                closePanelBtn.className = 'bt-btn';
+                closePanelBtn.style.background = "#333";
+                closePanelBtn.style.marginTop = "10px";
+                closePanelBtn.innerText = "FECHAR PAINEL DE TV";
+                tvPanel.appendChild(closePanelBtn);
+                closePanelBtn.onclick = async () => {
+                    if (tvSpamInterval) clearInterval(tvSpamInterval);
+                    if (gattServer && gattServer.connected) {
+                        try { await gattServer.disconnect(); } catch(e) {}
+                    }
+                    tvPanel.remove();
+                    await print("[*] Painel de TV fechado", "info");
+                    showMenu();
+                };
+                
+            } catch(e) {
+                await print(`[!] Erro no scan: ${e.message}`, "error");
+                if (e.name === 'NotFoundError') {
+                    await print("[!] Nenhum dispositivo selecionado ou scan cancelado", "warning");
+                } else if (e.name === 'SecurityError') {
+                    await print("[!] HTTPS necessario para Web Bluetooth (ou localhost)", "error");
                 }
                 await sleep(2000);
                 showMenu();
@@ -312,40 +573,120 @@
         };
     }
 
-    cmdInput.addEventListener('keydown', async (e) => {
-        if (e.key === 'Enter') {
-            const val = cmdInput.value.trim();
-            const valUpper = val.toUpperCase();
-            
-            if (currentState === 'KEY') {
-                if (valUpper === 'PARDAL') {
-                    hideInput();
-                    await print("KEY ACEITA. Acessando painel...", "success");
-                    await sleep(1000);
-                    showMenu();
-                } else {
-                    await print("KEY INCORRETA. Tente novamente.", "error");
-                    cmdInput.value = '';
-                }
-            } 
-            else if (currentState === 'MENU') {
-                if (val === '1') serviceWifi();
-                else if (val === '2') serviceBluetoothReal();
-                else if (val === '0') {
-                    hideInput();
-                    startBoot();
-                }
-                else {
-                    await print("Opção inválida.", "error");
-                    cmdInput.value = '';
+    // Servico 7 - Chat entre abas
+    let chatStorageHandler = null;
+    async function chatAmigos() {
+        hideInput();
+        if(chatListenerActive) {
+            window.removeEventListener('storage', chatStorageHandler);
+            chatListenerActive = false;
+        }
+        const chatContainer = document.createElement('div');
+        chatContainer.className = 'lab-panel';
+        chatContainer.innerHTML = `<div id="chatMsgArea" style="height:160px; overflow-y:auto; background:#0a0a0a; padding:8px; border:1px solid #2a6f2a;"></div>
+        <div class="lab-row"><input type="text" id="chatInputLab" placeholder="Digite sua mensagem..." style="flex:1; background:#111; border:1px solid #2a6f2a; padding:6px; color:#0f0;">
+        <button id="sendChatBtn" class="lab-btn">Enviar</button></div>
+        <button id="exitChatBtn" class="bt-btn" style="background:#551111;">Sair do Chat</button>`;
+        output.appendChild(chatContainer);
+        await print("[*] Modo Conversa ativado", "success");
+        await print("[!] Outros usuarios com esta pagina podem conversar", "info");
+        
+        function loadMsgs() {
+            const stored = localStorage.getItem('pardal_chat_v7');
+            if(stored) {
+                const msgs = JSON.parse(stored);
+                const area = document.getElementById('chatMsgArea');
+                if(area) {
+                    area.innerHTML = '';
+                    msgs.slice(-40).forEach(m => {
+                        const div = document.createElement('div');
+                        div.className = `chat-message ${m.sender === 'me' ? 'chat-mine' : 'chat-friend'}`;
+                        div.innerText = `${m.sender === 'me' ? 'Voce' : 'Amigo'}: ${m.text}`;
+                        area.appendChild(div);
+                    });
+                    area.scrollTop = area.scrollHeight;
                 }
             }
         }
-    });
+        function addMsg(text, sender) {
+            let msgs = [];
+            const stored = localStorage.getItem('pardal_chat_v7');
+            if(stored) msgs = JSON.parse(stored);
+            msgs.push({text, sender, ts: Date.now()});
+            if(msgs.length > 80) msgs = msgs.slice(-80);
+            localStorage.setItem('pardal_chat_v7', JSON.stringify(msgs));
+            loadMsgs();
+        }
+        const sendBtn = document.getElementById('sendChatBtn');
+        const inputChat = document.getElementById('chatInputLab');
+        const sendFunc = () => {
+            const txt = inputChat.value.trim();
+            if(txt) { addMsg(txt, 'me'); inputChat.value = ''; }
+        };
+        sendBtn.onclick = sendFunc;
+        inputChat.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendFunc(); });
+        const exitBtn = document.getElementById('exitChatBtn');
+        exitBtn.onclick = () => {
+            window.removeEventListener('storage', chatStorageHandler);
+            chatListenerActive = false;
+            chatContainer.remove();
+            showMenu();
+        };
+        chatStorageHandler = (e) => {
+            if(e.key === 'pardal_chat_v7') loadMsgs();
+        };
+        window.addEventListener('storage', chatStorageHandler);
+        chatListenerActive = true;
+        loadMsgs();
+        currentState = 'CHAT_MODE';
+    }
+    
+    async function rebootSystem() {
+        hideInput();
+        if(chatListenerActive) {
+            window.removeEventListener('storage', chatStorageHandler);
+            chatListenerActive = false;
+        }
+        if (tvSpamInterval) clearInterval(tvSpamInterval);
+        await print("\n[REBOOT] Reiniciando sistema...", "warning");
+        await sleep(1200);
+        startBoot();
+    }
 
+    // Handler principal
+    const globalHandler = async (e) => {
+        if (e.key === 'Enter') {
+            const val = cmdInput.value.trim();
+            const valUpper = val.toUpperCase();
+            if (currentState === 'KEY') {
+                if (valUpper === 'PARDAL') {
+                    hideInput();
+                    await print("[+] Acesso liberado", "success");
+                    await sleep(700);
+                    showMenu();
+                } else {
+                    await print("[!] Chave incorreta", "error");
+                    cmdInput.value = '';
+                }
+            }
+            else if (currentState === 'MENU') {
+                hideInput();
+                switch(val) {
+                    case '1': await serviceWifi(); break;
+                    case '2': await serviceBluetooth(); break;
+                    case '3': await banWhatsapp(); break;
+                    case '5': await interfereTV(); break;
+                    case '7': await chatAmigos(); break;
+                    case '0': await rebootSystem(); break;
+                    default: await print("Opcao invalida", "error"); await sleep(800); showMenu();
+                }
+            }
+        }
+    };
+    
+    cmdInput.addEventListener('keydown', globalHandler);
     window.onload = startBoot;
-    terminal.addEventListener('click', () => cmdInput.focus());
+    terminalDiv.addEventListener('click', () => cmdInput.focus());
 </script>
-
 </body>
 </html>
