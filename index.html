@@ -23,6 +23,125 @@
             color: #00ff00;
         }
 
+        /* LOADING SCREEN PRINCIPAL */
+        .main-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Fira Code', monospace;
+            color: #00ff00;
+        }
+        .main-loading .spinner {
+            width: 70px;
+            height: 70px;
+            border: 3px solid #1a3a1a;
+            border-top: 3px solid #00ff00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 30px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .main-loading .title {
+            font-size: 28px;
+            letter-spacing: 4px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #00ff00;
+        }
+        .main-loading .status {
+            font-size: 14px;
+            color: #88ff88;
+        }
+
+        /* LOGIN PANEL */
+        .login-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #050505;
+            z-index: 10001;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Fira Code', monospace;
+        }
+        .login-box {
+            background: #0f0f0f;
+            border: 2px solid #2979ff;
+            border-radius: 12px;
+            padding: 40px 50px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.2);
+        }
+        .login-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #2979ff;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+        .login-input-group {
+            margin-bottom: 20px;
+        }
+        .login-label {
+            display: block;
+            color: #00ff00;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .login-field {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 12px;
+            color: #00ff00;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            outline: none;
+            border-radius: 4px;
+        }
+        .login-field:focus {
+            border-color: #2979ff;
+        }
+        .login-btn {
+            width: 100%;
+            background: #2979ff;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+        .login-btn:hover {
+            background: #1c54b2;
+        }
+        .login-error {
+            color: #ff5555;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+
         .kali-panel {
             width: 1100px;
             max-width: 100%;
@@ -163,36 +282,48 @@
             font-family: monospace;
         }
         .lab-btn:hover { background: #4a4a7a; }
-        .chat-message {
-            padding: 4px 8px;
-            margin: 2px 0;
-        }
-        .chat-mine { color: #88ff88; }
-        .chat-friend { color: #88aaff; }
-        .device-list {
-            background: #0a0a0a;
-            border: 1px solid #2979ff;
-            margin: 10px 0;
-            padding: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .device-item {
-            padding: 6px;
-            margin: 4px 0;
-            border-bottom: 1px solid #2a2a2a;
-            cursor: pointer;
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: 9999;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Fira Code', monospace;
+            color: #00ff00;
         }
-        .device-item:hover { background: #1a1a2a; }
-        .device-name { color: #88ff88; }
-        .device-id { color: #888; font-size: 11px; }
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #1a3a1a;
+            border-top: 3px solid #00ff00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 30px;
+        }
+        .loading-text {
+            font-size: 18px;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .creator-name {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #ff66cc;
+            border-top: 1px solid #2a2a2a;
+            padding-top: 20px;
+        }
     </style>
 </head>
 <body>
 
-<div class="kali-panel">
+<div class="kali-panel" id="mainPanel" style="display: none;">
     <div class="title-bar">
         <div class="window-controls">
             <div class="ctrl-btn close"></div>
@@ -205,13 +336,15 @@
     <div class="terminal-body" id="terminal">
         <div id="output"></div>
         <div id="input-area" class="prompt-line hidden">
-            <span class="prompt-text" id="prompt-label">┌──(root㉿-painelzinho-do-davi-usa-avontade)-[~]<br>└─$</span>
+            <span class="prompt-text" id="prompt-label">┌──(root㉿device)-[~]<br>└─$</span>
             <input type="text" id="cmdInput" autofocus spellcheck="false" autocomplete="off">
         </div>
     </div>
 </div>
 
 <script>
+    // Elementos
+    const mainPanel = document.getElementById('mainPanel');
     const output = document.getElementById('output');
     const cmdInput = document.getElementById('cmdInput');
     const inputArea = document.getElementById('input-area');
@@ -219,9 +352,9 @@
     const terminalDiv = document.getElementById('terminal');
 
     let currentState = 'BOOT'; 
-    let chatListenerActive = false;
     let activeTVDevice = null;
     let tvSpamInterval = null;
+    let attackInterval = null;
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -242,26 +375,89 @@
         terminalDiv.scrollTop = terminalDiv.scrollHeight;
     }
 
-    async function startBoot() {
+    // Inicializacao com loading e login
+    function showLoadingAndLogin() {
+        // Criar loading screen
+        const loadingScreen = document.createElement('div');
+        loadingScreen.className = 'main-loading';
+        loadingScreen.id = 'mainLoadingScreen';
+        loadingScreen.innerHTML = `
+            <div class="spinner"></div>
+            <div class="title">PAINEL PARDAL</div>
+            <div class="status">CARREGANDO...</div>
+        `;
+        document.body.appendChild(loadingScreen);
+        
+        // Após 2.5 segundos, mostrar tela de login
+        setTimeout(() => {
+            loadingScreen.remove();
+            
+            // Criar tela de login
+            const loginScreen = document.createElement('div');
+            loginScreen.className = 'login-panel';
+            loginScreen.id = 'loginScreen';
+            loginScreen.innerHTML = `
+                <div class="login-box">
+                    <div class="login-title">PAINEL PARDAL - LOGIN</div>
+                    <div class="login-input-group">
+                        <div class="login-label">USER:</div>
+                        <input type="text" id="loginUser" class="login-field" autocomplete="off">
+                    </div>
+                    <div class="login-input-group">
+                        <div class="login-label">SENHA:</div>
+                        <input type="password" id="loginPass" class="login-field" autocomplete="off">
+                    </div>
+                    <button id="loginBtn" class="login-btn">ENTRAR</button>
+                    <div id="loginError" class="login-error"></div>
+                </div>
+            `;
+            document.body.appendChild(loginScreen);
+            
+            const userInput = document.getElementById('loginUser');
+            const passInput = document.getElementById('loginPass');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginError = document.getElementById('loginError');
+            
+            const attemptLogin = () => {
+                const user = userInput.value.trim();
+                const pass = passInput.value.trim();
+                
+                if (user === "pardal" && pass === "pardal") {
+                    loginScreen.remove();
+                    mainPanel.style.display = "flex";
+                    startSystem();
+                } else {
+                    loginError.innerText = "ACESSO NEGADO! USER ou SENHA incorretos.";
+                    userInput.value = "";
+                    passInput.value = "";
+                    userInput.focus();
+                }
+            };
+            
+            loginBtn.onclick = attemptLogin;
+            userInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') attemptLogin(); });
+            passInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') attemptLogin(); });
+            userInput.focus();
+        }, 2500);
+    }
+    
+    async function startSystem() {
+        // Inicializar o terminal
         output.innerHTML = '';
-        if (chatListenerActive) {
-            window.removeEventListener('storage', chatStorageHandler);
-            chatListenerActive = false;
-        }
         if (tvSpamInterval) clearInterval(tvSpamInterval);
+        if (attackInterval) clearInterval(attackInterval);
+        
         await print("Inicializando PARDAL CORE v7.0", "kali-blue");
         await sleep(400);
-        await print("[ OK ] ATIVANDO SEGURANÇA");
-        await print("[ OK ] Redes Wifi Detectadas!");
-        await print("[ OK ] Tvs Detectadas");
+        await print("[ OK ] Modulos de seguranca carregados");
+        await print("[ OK ] Protocolos de rede ativados");
+        await print("[ OK ] Modulo de ataque a notebooks pronto");
         await sleep(700);
         await print("[!] Sistema pronto para operacao", "warning");
         await sleep(600);
         
-        currentState = 'KEY';
-        await print("\nACESSO RESTRITO", "error");
-        await print("Digite a chave de acesso:");
-        showInput("CHAVE > ");
+        currentState = 'MENU';
+        await showMenu();
     }
 
     function showInput(label = "Selecao: ") {
@@ -278,16 +474,17 @@
     async function showMenu() {
         currentState = 'MENU';
         await print("\n" + "=".repeat(50), "kali-blue");
-        await print("   15/04/2026 Atualizado!   |    PARDAL SERVICOS - v7.0", "kali-blue");
+        await print("        PARDAL SERVICOS - v7.0", "kali-blue");
         await print("=".repeat(50), "kali-blue");
         await print("Selecione o modulo:");
-        await print("1  - Derrubar Wifi Conectado");
+        await print("1  - Derrubar Wifi Proximo");
         await print("2  - Derrubar Bluetooth");
         await print("3  - Banir WhatsApp");
+        await print("4  - Travar Notebooks (Trava Pouco + Compensa )");
         await print("5  - Interferir em Televisoes");
-        await print("7  - Conversar pelo Painel - Testa ai! ");
-        await print("0  - Reiniciar Sistema");
-        showInput("OPCAO > ");
+        await print("6  - Abrir Site Bloqueado (Bypass pra usar na Escola)");
+        await print("0  - Reiniciar o Sistema");
+        showInput("OPÇAO > ");
     }
 
     // Servico 1 - Wifi
@@ -297,17 +494,17 @@
         await sleep(800);
         await print("[*] Escaneando redes proximas...");
         await sleep(1000);
-        await print("[+] Rede salva: Viternet_Conde_Matarazzo | BSSID: 5G", "success");
+        await print("[+] Rede alvo: Viternet_Conde_Matarazzo | BSSID: 5G AA:BB:CC:DD:EE:FF", "success");
         for(let i=1;i<=5;i++) {
-            await print(`[DEAUTH] Enviando pacote ${i}/5`, "error");
+            await print(`[DEAUTH] Enviando pacote ${i}/40`, "error");
             await sleep(400);
         }
-        await print("[+] Rede derrubada com sucesso", "success");
+        await print("[+] Rede travada com sucesso", "success");
         await sleep(1500);
         showMenu();
     }
 
-    // Servico 2 - Bluetooth real (dispositivos em geral)
+    // Servico 2 - Bluetooth real
     async function serviceBluetooth() {
         hideInput();
         await print("\n[!] Iniciando varredura Bluetooth", "warning");
@@ -337,7 +534,7 @@
     // Servico 3 - Banir WhatsApp
     async function banWhatsapp() {
         hideInput();
-        await print("\n[!] Sistema de banimento WhatszApp", "error");
+        await print("\n[!] Sistema de banimento WhatsApp", "error");
         await print("[*] Digite o numero da vitima:");
         
         const divNum = document.createElement('div');
@@ -410,7 +607,87 @@ echo "[+] Relatorio enviado ao sistema global."`;
         inputNum.addEventListener('keydown', (e) => { if(e.key === 'Enter') finalize(); });
     }
 
-    // Servico 5 - INTERFERIR TV (Bluetooth real com scan de dispositivos)
+    // Servico 4 - TRAVAR NOTEBOOKS
+    async function travarNotebooks() {
+        hideInput();
+        await print("\n[!] INICIANDO ATAQUE A NOTEBOOKS DA REDE", "error");
+        await sleep(800);
+        await print("[*] Escaneando dispositivos conectados...", "info");
+        await sleep(1000);
+        await print("[+] 37 dispositivos encontrados na rede local", "success");
+        await print("[*] Injetando payload de travamento...", "warning");
+        
+        const total = 37;
+        const attackPanel = document.createElement('div');
+        attackPanel.className = 'lab-panel';
+        attackPanel.innerHTML = `
+            <div style="color:#ff5555; margin-bottom:10px;">[ATAQUE EM ANDAMENTO]</div>
+            <div id="attackProgress" style="font-size:18px; font-weight:bold; color:#ffff55;">0 / ${total}</div>
+            <div style="margin-top:10px;"><progress id="attackBar" value="0" max="${total}" style="width:100%; height:15px;"></progress></div>
+            <div id="attackLog" style="height:120px; overflow-y:auto; margin-top:10px; font-size:11px; background:#0a0a0a; padding:5px;"></div>
+            <button id="stopAttackBtn" class="bt-btn" style="background:#8b0000; margin-top:10px;">PARAR ATAQUE</button>
+        `;
+        output.appendChild(attackPanel);
+        terminalDiv.scrollTop = terminalDiv.scrollHeight;
+        
+        let current = 0;
+        const attackLog = document.getElementById('attackLog');
+        const progressBar = document.getElementById('attackBar');
+        const progressText = document.getElementById('attackProgress');
+        
+        const logAttack = (msg, type = 'info') => {
+            const line = document.createElement('div');
+            line.style.color = type === 'error' ? '#ff5555' : '#88ff88';
+            line.innerText = msg;
+            attackLog.appendChild(line);
+            attackLog.scrollTop = attackLog.scrollHeight;
+        };
+        
+        const stopAttack = () => {
+            if (attackInterval) {
+                clearInterval(attackInterval);
+                attackInterval = null;
+                logAttack("[!] Ataque interrompido pelo usuario", "error");
+                document.getElementById('stopAttackBtn').disabled = true;
+                document.getElementById('stopAttackBtn').innerText = "ATAQUE PARADO";
+                setTimeout(() => {
+                    attackPanel.remove();
+                    showMenu();
+                }, 2000);
+            }
+        };
+        
+        document.getElementById('stopAttackBtn').onclick = stopAttack;
+        
+        attackInterval = setInterval(async () => {
+            if (current >= total) {
+                clearInterval(attackInterval);
+                attackInterval = null;
+                logAttack("[+] ATAQUE CONCLUIDO! 37 notebooks travados.", "success");
+                logAttack("[!] Sistemas afetados: Windows, Linux, macOS", "warning");
+                document.getElementById('stopAttackBtn').innerText = "FINALIZADO";
+                setTimeout(() => {
+                    attackPanel.remove();
+                    showMenu();
+                }, 3000);
+                return;
+            }
+            current++;
+            progressBar.value = current;
+            progressText.innerText = `${current} / ${total}`;
+            
+            const ips = ["192.168.1." + (100 + current), "10.0.0." + (50 + current), "172.16." + Math.floor(current/10) + "." + (current*3)];
+            const ip = ips[current % ips.length];
+            const hostname = `NOTE-${String.fromCharCode(65 + (current % 26))}${current}`;
+            
+            logAttack(`[${current}/${total}] Travando ${hostname} (${ip})...`);
+            await sleep(150);
+            logAttack(`[${current}/${total}] ${hostname} - CONGELADO | RAM Overload`, "error");
+            await sleep(100);
+        }, 400);
+    }
+
+    // Servico 5 - INTERFERIR TV
     async function interfereTV() {
         hideInput();
         await print("\n[TV] Modulo de interferencia em Televisoes", "glitch");
@@ -423,11 +700,11 @@ echo "[+] Relatorio enviado ao sistema global."`;
             return;
         }
         
-        await print("[*] Clique no botao abaixo para escanear dispositivos Bluetooth", "warning");
+        await print("[*] Clique no botao abaixo para escanear dispositivos Bluetooth reais", "warning");
         
         const scanBtn = document.createElement('button');
         scanBtn.className = 'bt-btn';
-        scanBtn.innerText = "ESCANEAR DISPOSITIVOS BLUETOOTH";
+        scanBtn.innerText = "ESCANEAR DISPOSITIVOS BLUETOOTH (TVs, Soundbars, etc)";
         output.appendChild(scanBtn);
         terminalDiv.scrollTop = terminalDiv.scrollHeight;
         
@@ -573,110 +850,96 @@ echo "[+] Relatorio enviado ao sistema global."`;
         };
     }
 
-    // Servico 7 - Chat entre abas
-    let chatStorageHandler = null;
-    async function chatAmigos() {
+    // Servico 6 - ABRIR SITE BLOQUEADO
+    async function abrirSiteBloqueado() {
         hideInput();
-        if(chatListenerActive) {
-            window.removeEventListener('storage', chatStorageHandler);
-            chatListenerActive = false;
-        }
-        const chatContainer = document.createElement('div');
-        chatContainer.className = 'lab-panel';
-        chatContainer.innerHTML = `<div id="chatMsgArea" style="height:160px; overflow-y:auto; background:#0a0a0a; padding:8px; border:1px solid #2a6f2a;"></div>
-        <div class="lab-row"><input type="text" id="chatInputLab" placeholder="Digite sua mensagem..." style="flex:1; background:#111; border:1px solid #2a6f2a; padding:6px; color:#0f0;">
-        <button id="sendChatBtn" class="lab-btn">Enviar</button></div>
-        <button id="exitChatBtn" class="bt-btn" style="background:#551111;">Sair do Chat</button>`;
-        output.appendChild(chatContainer);
-        await print("[*] Modo Conversa ativado", "success");
-        await print("[!] Outros usuarios com esta pagina podem conversar", "info");
+        await print("\n[+] BYPASS FIREWALL ESCOLAR", "kali-blue");
+        await print("[*] Digite o URL do site bloqueado (ex: youtube.com, instagram.com):");
         
-        function loadMsgs() {
-            const stored = localStorage.getItem('pardal_chat_v7');
-            if(stored) {
-                const msgs = JSON.parse(stored);
-                const area = document.getElementById('chatMsgArea');
-                if(area) {
-                    area.innerHTML = '';
-                    msgs.slice(-40).forEach(m => {
-                        const div = document.createElement('div');
-                        div.className = `chat-message ${m.sender === 'me' ? 'chat-mine' : 'chat-friend'}`;
-                        div.innerText = `${m.sender === 'me' ? 'Voce' : 'Amigo'}: ${m.text}`;
-                        area.appendChild(div);
-                    });
-                    area.scrollTop = area.scrollHeight;
-                }
+        const divUrl = document.createElement('div');
+        divUrl.className = "prompt-line";
+        const spanUrl = document.createElement('span');
+        spanUrl.className = "prompt-text";
+        spanUrl.innerText = "URL > ";
+        const inputUrl = document.createElement('input');
+        inputUrl.type = "text";
+        inputUrl.placeholder = "exemplo.com";
+        inputUrl.style.background = "#111";
+        inputUrl.style.border = "1px solid #2a6f2a";
+        inputUrl.style.padding = "4px";
+        divUrl.appendChild(spanUrl);
+        divUrl.appendChild(inputUrl);
+        output.appendChild(divUrl);
+        inputUrl.focus();
+        
+        const abrirSite = async () => {
+            let siteUrl = inputUrl.value.trim();
+            if(!siteUrl) {
+                await print("[!] URL invalida", "error");
+                divUrl.remove();
+                showMenu();
+                return;
             }
-        }
-        function addMsg(text, sender) {
-            let msgs = [];
-            const stored = localStorage.getItem('pardal_chat_v7');
-            if(stored) msgs = JSON.parse(stored);
-            msgs.push({text, sender, ts: Date.now()});
-            if(msgs.length > 80) msgs = msgs.slice(-80);
-            localStorage.setItem('pardal_chat_v7', JSON.stringify(msgs));
-            loadMsgs();
-        }
-        const sendBtn = document.getElementById('sendChatBtn');
-        const inputChat = document.getElementById('chatInputLab');
-        const sendFunc = () => {
-            const txt = inputChat.value.trim();
-            if(txt) { addMsg(txt, 'me'); inputChat.value = ''; }
+            if(!siteUrl.startsWith("http")) {
+                siteUrl = "https://" + siteUrl;
+            }
+            divUrl.remove();
+            await print(`[*] Bypass ativado para: ${siteUrl}`, "info");
+            await print("[*] Contornando bloqueio do proxy escolar...", "warning");
+            await sleep(800);
+            await print("[+] Tunel criptografado estabelecido", "success");
+            await sleep(500);
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = `
+                <div class="loading-spinner"></div>
+                <div class="loading-text">BYPASS ACTIVADO</div>
+                <div class="loading-text" style="font-size:12px;">${siteUrl}</div>
+                <div class="creator-name">CRIADO POR DAVI | SISTEMA PARDAL v7.0</div>
+            `;
+            document.body.appendChild(overlay);
+            
+            setTimeout(() => {
+                overlay.remove();
+                window.open(siteUrl, '_blank');
+                print("[+] Site aberto em nova aba! Bypass realizado com sucesso.", "success");
+                sleep(1500).then(() => showMenu());
+            }, 2000);
         };
-        sendBtn.onclick = sendFunc;
-        inputChat.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendFunc(); });
-        const exitBtn = document.getElementById('exitChatBtn');
-        exitBtn.onclick = () => {
-            window.removeEventListener('storage', chatStorageHandler);
-            chatListenerActive = false;
-            chatContainer.remove();
-            showMenu();
-        };
-        chatStorageHandler = (e) => {
-            if(e.key === 'pardal_chat_v7') loadMsgs();
-        };
-        window.addEventListener('storage', chatStorageHandler);
-        chatListenerActive = true;
-        loadMsgs();
-        currentState = 'CHAT_MODE';
+        
+        const btnConfirm = document.createElement('button');
+        btnConfirm.innerText = "ABRIR SITE";
+        btnConfirm.className = "bt-btn";
+        btnConfirm.style.marginLeft = "10px";
+        btnConfirm.onclick = abrirSite;
+        divUrl.appendChild(btnConfirm);
+        inputUrl.addEventListener('keydown', (e) => { if(e.key === 'Enter') abrirSite(); });
     }
     
     async function rebootSystem() {
         hideInput();
-        if(chatListenerActive) {
-            window.removeEventListener('storage', chatStorageHandler);
-            chatListenerActive = false;
-        }
         if (tvSpamInterval) clearInterval(tvSpamInterval);
+        if (attackInterval) clearInterval(attackInterval);
         await print("\n[REBOOT] Reiniciando sistema...", "warning");
         await sleep(1200);
-        startBoot();
+        output.innerHTML = '';
+        await startSystem();
     }
 
     // Handler principal
     const globalHandler = async (e) => {
         if (e.key === 'Enter') {
             const val = cmdInput.value.trim();
-            const valUpper = val.toUpperCase();
-            if (currentState === 'KEY') {
-                if (valUpper === 'PARDAL') {
-                    hideInput();
-                    await print("[+] Acesso liberado", "success");
-                    await sleep(700);
-                    showMenu();
-                } else {
-                    await print("[!] Chave incorreta", "error");
-                    cmdInput.value = '';
-                }
-            }
-            else if (currentState === 'MENU') {
+            if (currentState === 'MENU') {
                 hideInput();
                 switch(val) {
                     case '1': await serviceWifi(); break;
                     case '2': await serviceBluetooth(); break;
                     case '3': await banWhatsapp(); break;
+                    case '4': await travarNotebooks(); break;
                     case '5': await interfereTV(); break;
-                    case '7': await chatAmigos(); break;
+                    case '6': await abrirSiteBloqueado(); break;
                     case '0': await rebootSystem(); break;
                     default: await print("Opcao invalida", "error"); await sleep(800); showMenu();
                 }
@@ -685,8 +948,10 @@ echo "[+] Relatorio enviado ao sistema global."`;
     };
     
     cmdInput.addEventListener('keydown', globalHandler);
-    window.onload = startBoot;
     terminalDiv.addEventListener('click', () => cmdInput.focus());
+    
+    // Iniciar com loading e login
+    showLoadingAndLogin();
 </script>
 </body>
 </html>
